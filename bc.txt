@@ -1,0 +1,716 @@
+//prac1a-generates the private and public keys by using the builtin Python RSA algorithm and test it
+import binascii
+import Crypto
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+class Client:
+    def __init__(self):
+        random = Crypto.Random.new().read
+        self._private_key = RSA.generate(1024, random)
+        self._public_key = self._private_key.publickey()
+        self._signer = PKCS1_v1_5.new(self._private_key)
+    @property
+    def identity(self):
+        return binascii.hexlify(self._public_key.exportKey(format="DER")).decode("ascii")
+xyz = Client()
+print("\n Public Key:",xyz.identity)
+
+///////////////////////////////////////////////////////
+//prac1b-transaction class to send and receive money and test it.
+
+import binascii
+import collections
+import datetime
+from client import Client
+from Crypto.Hash import SHA
+from Crypto.Signature import PKCS1_v1_5
+class Transaction:
+    def __init__(self, sender, recipient, value):
+        self.sender = sender
+        self.recipient = recipient
+        self.value = value
+        self.time = datetime.datetime.now()
+    def to_dict(self):
+        identity = "Genesis" if self.sender == "Genesis" else self.sender.identity
+        return collections.OrderedDict(
+            {
+                "sender": identity,
+                "recipient": self.recipient,
+                "value": self.value,
+                "time": self.time,
+            }   
+        )
+    def sign_transaction(self):
+        private_key = self.sender._private_key
+        signer = PKCS1_v1_5.new(private_key)
+        h = SHA.new(str(self.to_dict()).encode("utf8"))
+        return binascii.hexlify(signer.sign(h)).decode("ascii")
+Trisha = Client()
+kalpana = Client()
+t = Transaction(Trisha, kalpana.identity, 5.0)
+print("\nTransaction Recipient:\n", t.recipient)
+print("\nTransaction Value:\n", t.value)
+signature = t.sign_transaction()
+print("\nSignature:\n", signature)
+
+///////////////////////////////////////////////////////////////
+//prac1c-Create multiple transactions and display
+
+from client import Client
+from transaction_class import Transaction
+
+def display_transaction(transaction):
+       #for transaction in transactions:
+        dict = transaction.to_dict()
+        print ("sender: " + dict['sender'])
+        print ('-----')
+        print ("recipient: " + dict['recipient'])
+        print ('-----')
+        print ("value: " + str(dict['value']))
+        print ('-----')
+        print ("time: " + str(dict['time']))
+        print ('-----')
+transactions = []
+
+Trisha = Client()
+kalpana = Client()
+Seema = Client()
+Arti = Client()
+
+t1 = Transaction(Trisha, kalpana.identity, 15.0)
+t1.sign_transaction()
+transactions.append(t1)
+
+t2 = Transaction(Trisha, Seema.identity, 6.0)
+t2.sign_transaction()
+transactions.append(t2)
+
+t3 = Transaction(kalpana, Arti.identity, 2.0)
+t3.sign_transaction()
+transactions.append(t3)
+
+t4 = Transaction(Seema, kalpana.identity, 4.0)
+t4.sign_transaction()
+
+transactions.append(t4)
+
+for transaction in transactions:
+    display_transaction(transaction)
+    print("--------------")
+/////////////////////////////////////////////////////
+//prac1d-Create a blockchain, a genesis block and execute
+
+from client import Client
+from transaction_class import Transaction
+from multi_trans import Trans
+class Block:
+    def __init__(self):
+        self.verified_transactions = []
+        self.previous_block_hash = ""
+        self.Nonce = ""
+        
+    def dump_blockchain (self):
+       print ("Number of blocks in the chain: " + str(len (self)))
+       for x in range (len(TPCoins)):
+           block_temp = TPCoins[x]
+           print ("block # " + str(x))
+           for transaction in block_temp.verified_transactions:
+               Trans.display_transaction (transaction)
+last_block_hash = ""
+Dinesh = Client()
+t0 = Transaction ("Genesis", Dinesh.identity, 500.0 )
+block0 = Block()
+block0.previous_block_hash = None
+Nonce = None
+block0.verified_transactions.append (t0)
+digest = hash (block0)
+last_block_hash = digest
+
+TPCoins = []
+TPCoins.append (block0)
+Block.dump_blockchain(TPCoins)
+
+//////////////////////////////////////////////////////////
+//prac1e-Create a mining function and test
+
+import hashlib
+def sha256(message):
+    return hashlib.sha256(message.encode("ascii")).hexdigest()
+def mine(message, difficulty=1):
+    assert difficulty >= 1
+    prefix = '1' * difficulty
+    for i in range(1000):
+        digest = sha256(str(hash(message)) + str(i))
+        if digest.startswith(prefix):
+            print ("after " + str(i) + " iterations found nonce: "+ digest)
+            return digest
+mine("test message", 2)
+
+///////////////////////////////////////////////////////////////////////////////
+//prac1f-Add blocks to the miner and dump the blockchain
+
+import datetime
+import hashlib
+# Create a class with two functions
+class Block:
+    def __init__(self, data, previous_hash):
+        self.timestamp = datetime.datetime.now(datetime.timezone.utc)
+        self.data = data
+        self.previous_hash = previous_hash
+        self.hash = self.calc_hash()
+    def calc_hash(self):
+        sha = hashlib.sha256()
+        hash_str = self.data.encode("utf-8")
+        sha.update(hash_str)
+        return sha.hexdigest()
+# Instantiate the class
+blockchain = [Block("First block", "0")]
+blockchain.append(Block("Second block", blockchain[0].hash))
+blockchain.append(Block("Third block", blockchain[1].hash))
+# Dumping the blockchain
+for block in blockchain:
+    print(f"Timestamp: {block.timestamp}\nData: {block.data}\nPrevious Hash:{block.previous_hash}\nHash: {block.hash}\n")
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//pract2 variable
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract var_demo{
+    uint total=100;
+    string s="welcome to BC";
+
+    function add() public pure returns (uint){
+        uint a=12;
+        uint b=12;
+        return a+b;
+    }
+    function display() public view returns(uint){
+        return total;
+    }
+    function disMsg() public view returns (string memory){
+        return s;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//operator
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract operator{
+    uint16 public a=20;
+    uint16 public b=30;
+    uint256 public sum = a+b;
+    uint256 public diff= a-b;
+    uint256 public mul=a*b;
+    uint256 public div=a/b;
+    uint256 public incre=++a;
+    uint256 public decre=--a;
+}
+contract relationaloperator{
+    uint16 public a = 20;
+    uint16 public b = 10;
+    bool public eq = a==b;
+    bool public noteq = a!=b;
+    bool public greater=a>b;
+    bool public less=a<b;
+    bool public greeq = a>=b;
+    bool public leseq = a<=b;
+}
+
+contract logicaloperator{
+    function logic(bool a, bool b) public pure returns (bool,bool,bool){
+        bool and = a&&b;
+        bool or = a||b;
+        bool not = !a;
+        return(and, or, not);
+    }
+}
+
+contract logical{
+    uint16 public a=20;
+    uint16 public b=10;
+
+    uint16 public and = a&b;
+    uint16 public or = a|b;
+    uint16 public xor = a^b;
+    uint16 public leftshift = a<<b;
+    uint16 public rightshift = a>>b;
+    uint16 public not = ~a;
+}
+
+contract conditionalOpe{
+    function sub(uint a, uint b) public pure returns (uint){
+        uint result= (a>b? a-b : b-a);
+        return result;
+    }
+}
+/////////////////////////////////////////////////////////////////////
+//loops
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract forloop{
+    uint [] data;
+    function fordemo() public returns(uint[] memory){
+        for (uint i=0; i<10; i++) 
+        {
+            data.push(i);
+        }
+        return data;
+    }
+
+    function disp() public view returns(uint[] memory){
+        return data;
+    }
+}
+
+contract whilelo{
+    uint [] data;
+    uint x=0;
+    function whileloop() public 
+    {
+        while (x<5) 
+        {
+            data.push(x);
+            x=x+1;
+        }
+    }
+    function dispwhilelo() public view returns(uint[] memory){
+        return data;
+    }
+}
+contract dowhile{
+    uint256[] data;
+    uint8 j=0;
+
+    function loop() public returns (uint256[] memory){
+        do {
+            j++;
+            data.push(j);
+        } 
+        while (j<5);
+        return data;
+    }
+    function disp() public view returns (uint256[] memory){
+        return data;
+    }
+
+}
+///////////////////////////////////////////////////////////
+//decision making
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract ifelse{
+    uint i=10;
+    function decisionmaking() public view returns (string memory){
+        if (i%2==0) {
+            return "even";
+        }
+        else 
+        {
+            return "odd";
+        }
+    }
+
+}
+//////////////////////////////////////////////////////
+//strings
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+contract learningstrings{
+
+    string text;
+    function gettext() public view returns (string memory){
+        return text;
+    }
+    function settext() public {
+        text = "hello world";
+    }
+    function settextbypasing(string memory message) public {
+        text = message;
+    }
+}
+/////////////////////////////////////
+//array
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract array{
+    uint[6] arr2=[1,2,3];
+    function disStaticArray() public view returns (uint[6] memory){
+        return arr2;
+    }
+
+    //dynamic
+    uint x=5;
+    uint [] arr1;
+    function arrayInsert() public {
+        while (x>0) 
+        {
+            arr1.push(x);
+            x=x-1;
+        }
+    }
+    function disDynamicArray() public view returns (uint[] memory)
+    {
+        return arr1;
+    }
+}
+/////////////////////////////////////////////////////////////////////////////
+//enum
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract enumdemo{
+    enum weekdays{
+        monday,
+        tuesday,
+        wednesday,
+        thurday,
+        firday,
+        saturday,
+        sunday
+    }
+    weekdays choice;
+    weekdays constant default_val = weekdays.sunday;
+    function set_val() public {
+        choice = weekdays.saturday;
+    }
+
+    function get_choice() public view returns (weekdays){
+        return choice;
+    }
+
+    function get_default_val() public pure returns (weekdays){
+        return default_val;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+//struct
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract structdemo{
+    struct book{
+    string name;
+    string author;
+    uint256 id;
+    bool availability;
+    }
+
+    book book2;
+
+    book book1= book("abc","xyz",2,false);
+
+    function setdetails() public {
+
+        book2 = book("aaa","bbb",1,true);
+    }
+
+    function book_info() public view returns (string memory,string memory,uint256,bool){
+        return (book1.name,book1.author,book1.id,book1.availability);
+    }
+
+    function getdetails() public view returns (string memory,string memory,uint256,bool){
+
+        return (book2.name,book2.author,book2.id,book2.availability);
+    }
+}
+//////////////////////////////
+//mappings
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract LedgerBalance{
+
+    mapping(address=>uint256) public balances;
+
+    function updateBalance(uint256 newBalance) public {
+        balances[msg.sender]=newBalance;
+
+    }
+}
+
+contract updater{
+    function updateBalance() public returns (uint256){
+        LedgerBalance ledgerBalance = new LedgerBalance();
+
+        return ledgerBalance.balances(address(this));
+    }
+}
+
+///////////////////////////
+//conversions
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract Implicitconversion{
+
+    function add() public pure returns (uint256){
+        uint256 a=2;
+        uint256 b=5;
+        return a+b;
+    }
+}
+contract explicitConversion{
+
+    function convert() public pure returns (bytes memory){
+        string memory str = "Hello world";
+        bytes memory b = bytes(str);
+        return b;
+    }
+}
+
+////////////////////////////////////////////
+//ether unit
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract solidityTest{
+    function convert_amount_to_wei(uint256 Amount) public pure returns (uint256){
+        return Amount * 1 wei;
+    }
+
+    function convert_amount_to_Ether(uint256 Amount) public pure returns(uint256){
+        return Amount * 1 ether;
+    }
+
+    function convert_amount_to_Gwei(uint256 Amount) public pure returns (uint256){
+        return Amount * 1 gwei;
+    }
+
+    function convert_seconds_To_mins(uint256 _seconds) public pure returns (uint256){
+        return _seconds/60;
+    }
+
+    function convert_seconds_To_hours(uint256 _seconds) public pure returns (uint256){
+        return _seconds/3600;
+    }
+
+    function convert_mins_to_seconds(uint256 _mins) public pure returns (uint256){
+        return _mins*60;
+    }
+}
+
+//////////////////////////////////////
+//special variable
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract special_var{
+
+    mapping (address => uint256) rollno;
+    function setRollNo(uint256 _mynumber) public {
+        rollno[msg.sender]= _mynumber;
+    }
+
+    function whatisMyRollNumber() public view returns(uint256){
+        return rollno[msg.sender];
+    }
+}
+
+////////////////////////////////////////////
+//prac4 function
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.1;
+
+contract test{
+    function return_eg() public pure returns (uint256,uint256,string memory){
+        uint256 n1 = 1;
+        uint256 n2 = 2;
+        uint256 sum = n1 + n2;
+        uint256 prod = n1 * n2;
+
+        string memory message = "multiple return value";
+        return (sum, prod, message);
+    }
+}
+
+//////////////////
+//function modifier
+contract funmodifier{
+    address public owner = 0x5B46546BGDGFG67567;
+
+    uint256 public counter;
+    modifier onlyowner(){
+        require(msg.sender==owner,"Only the contract owner can call");
+        _;
+    }
+
+    function incrementcounter() public onlyowner{
+        counter++;
+    }
+}
+//////////////////////
+//view functions
+contract view_demo{
+    uint256 n1=2;
+    uint256 n2=5;
+
+    function getResult() public view returns (uint256 product, uint256 sum){
+
+        product = n1 * n2;
+        sum = n1 + n2;
+    }
+}
+
+////////////////////////////////
+//pure function
+contract pure_demo{
+    
+    function getResult() public pure returns (uint256 product, uint256 sum){
+
+        uint256 n1=2;
+        uint256 n2=5;
+        
+        product = n1 * n2;
+        sum = n1 + n2;
+    }
+}
+
+//////////////////////////////
+//fun overloading
+
+contract overloadingeg{
+
+    function add(uint256 a, uint256 b) public pure returns (uint256){
+
+        return a+b;
+    }
+
+    function add(string memory a, string memory b) public pure returns (string memory){
+        return string(abi.encodePacked(a,b);
+    }
+}
+
+/////////////////////
+//mathematical  fun
+
+contract test1{
+
+    function callAddMod() public pure returns (uint){
+        return addmod(7,3,3);
+    }
+
+    function callmulmod() public pure returns (uint){
+        returns mulmod(7, 3, 3);
+    }
+}
+
+/////////////////////////////////
+//cryptographic function
+contract test2{
+    function callleccal256() public pure returns (bytes32 result){
+        return keccak256("blockchain");
+    }
+
+    function callsha256() public pure returns (bytes32 result){
+        return sha256("blockchain");
+    }
+
+    function callripemd() public pure returns (bytes32 result){
+        return ripemd160("blockchain");
+    }
+}
+///////////////////////////////////////////////
+//prac5 - mining of ether
+
+const Web3 = require('web3')
+const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
+
+HTTP provider
+async function mine(){
+	const accounts = await web3.eth.getAccounts();
+	const coinbaseacc1 = account[0];
+	const coinbaseacc2 = account[1];
+	
+console.log('Mining ether on Ganache with coinbase address: ${coinbase}');
+
+while(true){
+    try{
+        await web3.eth.sendTransaction({
+            from: coinbaseacc1,
+            to: coinbaseacc2,
+            value: 50,
+        });
+        console.log('Mined a new block!');
+    }catch(err){
+        console.error(err);
+    }
+}
+}
+mine();
+
+npm insatll web3
+
+/////////////////////////////////////////////////
+\\prac 6 create own blockchain and use it
+
+const SHA256 = require("crypto-js/sha256");
+class Block{
+    constructor(index,timestamp,data,previousHash=""){
+        this.index=index;
+        this.timestamp=timestamp;
+        this.data=data;
+        this.previousHash=previousHash;
+        this.hash=this.calculateHash();
+    }
+    calculateHash(){
+        return SHA256(
+            this.index+
+            this.previousHash+
+            this.timestamp+
+            JSON.stringify(this.data)
+            ).toString();    
+    }
+}
+class Blockchain{
+    constructor(){
+        this.chain=[this.createGenesisBlock()];
+    }
+    createGenesisBlock(){
+        return new Block(0,"21/04/2023","Genesis Block","0");
+    }
+    getLatestBlock(){
+        return this.chain[this.chain.length - 1];
+    }
+    addBlock(newBlock){
+        newBlock.previousHash=this.getLatestBlock().hash;
+        newBlock.hash=newBlock.calculateHash();
+        this.chain.push(newBlock);
+    }
+    isChainvalid(){
+        for(let i=1; i<this.chain.length;i++){
+            const currentBlock=this.chain[i];
+            const previousBlock=this.chain[i-1];
+            if(currentBlock.hash=currentBlock.calculateHash()){
+                return false;
+            }
+            if(currentBlock.previousHash=previousBlock.hash){
+                return false;
+            }
+        }
+        return true;
+    }
+}
+//Blockchain Implemenatation
+let myCoin=new Blockchain();
+myCoin.addBlock(new Block(1,"22/04/2023",{ amount: 4}));
+myCoin.addBlock(new Block(2,"22/04/2023",{ amount: 8}));
+//console.log('IS blockchain valid?'+myCoin.isChainValid());
+console.log(JSON.stringify(myCoin,null,4));
+
+steps : installed nodejs in system\
+	we need to crypto -js node module to make our own blockchain.
+
+	node -v
+	npm install crypto-js
+	node main.js
